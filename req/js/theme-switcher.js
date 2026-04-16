@@ -1,312 +1,203 @@
-/**
- * Compact Theme Switcher - 3 Themes
- * ==================================
- * Themes: Modern Dark (default), Light, Terminal
- */
-
-(function() {
+(function () {
     'use strict';
 
     const THEME_KEY = 'portfolio-theme-v2';
     const DEFAULT_THEME = 'modern-dark';
 
-    // Theme configuration - 3 themes only
     const THEMES = {
-        'modern-dark': {
-            name: 'Dark',
-            icon: '🌙',
-            shortcut: 'Alt+1'
-        },
-        'light': {
-            name: 'Light',
-            icon: '☀️',
-            shortcut: 'Alt+2'
-        },
-        'terminal': {
-            name: 'Terminal',
-            icon: '💻',
-            shortcut: 'Alt+3'
-        }
+        'modern-dark': { name: 'Dark', icon: '🌙' },
+        'light': { name: 'Light', icon: '☀️' },
+        'white': { name: 'White', icon: '⚪' },
+        'terminal': { name: 'Terminal', icon: '💻' }
     };
 
-    const THEME_ORDER = ['modern-dark', 'light', 'terminal'];
+    const THEME_ORDER = ['modern-dark', 'light', 'white', 'terminal'];
 
-    // Initialize theme on page load
+    /* ---------------- INIT THEME ---------------- */
     function initTheme() {
-        const savedTheme = localStorage.getItem(THEME_KEY) || DEFAULT_THEME;
-        applyTheme(savedTheme);
+        const saved = localStorage.getItem(THEME_KEY) || DEFAULT_THEME;
+        applyTheme(saved, false);
     }
 
-    // Apply theme to document
-    function applyTheme(themeName) {
-        if (!THEMES[themeName]) {
-            themeName = DEFAULT_THEME;
-        }
-        
-        document.body.setAttribute('data-theme', themeName);
-        document.documentElement.setAttribute('data-theme', themeName);
-        localStorage.setItem(THEME_KEY, themeName);
-        updateThemeSwitcherUI(themeName);
-        updateActiveThemeInDropdown(themeName);
-        
-        window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: themeName } }));
+    function applyTheme(theme, save = true) {
+        if (!THEMES[theme]) theme = DEFAULT_THEME;
+
+        document.documentElement.setAttribute('data-theme', theme);
+
+        if (save) localStorage.setItem(THEME_KEY, theme);
+
+        updateUI(theme);
+
+        window.dispatchEvent(
+            new CustomEvent('themechange', { detail: { theme } })
+        );
     }
 
-    // Get current theme
     function getCurrentTheme() {
-        return document.body.getAttribute('data-theme') || DEFAULT_THEME;
+        return (
+            document.documentElement.getAttribute('data-theme') ||
+            DEFAULT_THEME
+        );
     }
 
-    // Cycle to next theme
     function cycleTheme() {
         const current = getCurrentTheme();
-        const currentIndex = THEME_ORDER.indexOf(current);
-        const nextIndex = (currentIndex + 1) % THEME_ORDER.length;
-        applyTheme(THEME_ORDER[nextIndex]);
+        const index = THEME_ORDER.indexOf(current);
+        const next = THEME_ORDER[(index + 1) % THEME_ORDER.length];
+        applyTheme(next);
     }
 
-    // Update theme switcher button
-    function updateThemeSwitcherUI(themeName) {
-        const btn = document.querySelector('.theme-switcher-btn');
+    /* ---------------- UI ---------------- */
+    function updateUI(theme) {
+        const btn = document.getElementById('themeSwitcherBtn');
         if (!btn) return;
 
-        const theme = THEMES[themeName];
-        const iconSpan = btn.querySelector('.current-theme-icon');
-        
-        if (iconSpan) iconSpan.textContent = theme.icon;
-    }
+        const icon = btn.querySelector('.current-theme-icon');
+        if (icon) icon.textContent = THEMES[theme].icon;
 
-    // Update active state in dropdown
-    function updateActiveThemeInDropdown(activeTheme) {
-        const options = document.querySelectorAll('.theme-option');
-        options.forEach(option => {
-            const themeId = option.getAttribute('data-theme');
-            option.classList.toggle('active', themeId === activeTheme);
+        document.querySelectorAll('.theme-option').forEach(opt => {
+            opt.classList.toggle(
+                'active',
+                opt.dataset.theme === theme
+            );
         });
     }
 
-    // Create compact theme switcher HTML
     function createThemeSwitcher() {
         return `
             <div class="theme-switcher-container">
-                <button class="theme-switcher-btn" id="themeSwitcherBtn" aria-label="Switch theme" aria-haspopup="true" aria-expanded="false">
+                <button id="themeSwitcherBtn" class="theme-switcher-btn" aria-expanded="false">
                     <span class="current-theme-icon">🌙</span>
                 </button>
-                <div class="theme-dropdown" id="themeDropdown" role="menu">
-                    ${Object.entries(THEMES).map(([key, theme]) => `
-                        <button class="theme-option" data-theme="${key}" role="menuitem">
-                            <span class="theme-option-icon">${theme.icon}</span>
-                            <span class="theme-option-label">${theme.name}</span>
+
+                <div id="themeDropdown" class="theme-dropdown">
+                    ${Object.entries(THEMES)
+                        .map(
+                            ([key, t]) => `
+                        <button class="theme-option" data-theme="${key}">
+                            ${t.icon} ${t.name}
                         </button>
-                    `).join('')}
+                    `
+                        )
+                        .join('')}
                 </div>
             </div>
         `;
     }
 
-    // Insert theme switcher into navigation
-    function setupThemeSwitcherInNav() {
-        const navMenu = document.getElementById('navMenu');
-        if (!navMenu) return;
+    function mountSwitcher() {
+        const nav = document.getElementById('navMenu');
+        if (!nav) return;
 
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = createThemeSwitcher();
-        navMenu.appendChild(tempDiv.firstElementChild);
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = createThemeSwitcher();
+        nav.appendChild(wrapper.firstElementChild);
     }
 
-    // Setup dropdown functionality
+    /* ---------------- DROPDOWN ---------------- */
     function setupDropdown() {
-        const switcherBtn = document.getElementById('themeSwitcherBtn');
+        const btn = document.getElementById('themeSwitcherBtn');
         const dropdown = document.getElementById('themeDropdown');
-        
-        if (!switcherBtn || !dropdown) return;
+
+        if (!btn || !dropdown) return;
+
+        let open = false;
+
+        function show() {
+            dropdown.classList.add('active');
+            btn.setAttribute('aria-expanded', 'true');
+            open = true;
+        }
+
+        function hide() {
+            dropdown.classList.remove('active');
+            btn.setAttribute('aria-expanded', 'false');
+            open = false;
+        }
+
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            open ? hide() : show();
+        });
+
+        // ✅ FIX: use event delegation (handles dynamic elements safely)
+        dropdown.addEventListener('click', (e) => {
+            const option = e.target.closest('.theme-option');
+            if (!option) return;
+
+            applyTheme(option.dataset.theme);
+            hide();
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+                hide();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') hide();
+        });
+    }
+
+    /* ---------------- HAMBURGER MENU ---------------- */
+    function setupHamburgerMenu() {
+        const toggle = document.getElementById('navToggle');
+        const menu = document.getElementById('navMenu');
+
+        if (!toggle || !menu) return;
 
         let isOpen = false;
 
-        function open() {
-            dropdown.classList.add('active');
-            switcherBtn.setAttribute('aria-expanded', 'true');
+        function showMenu() {
+            menu.classList.add('active');
+            toggle.classList.add('active');
+            toggle.setAttribute('aria-expanded', 'true');
             isOpen = true;
         }
 
-        function close() {
-            dropdown.classList.remove('active');
-            switcherBtn.setAttribute('aria-expanded', 'false');
+        function hideMenu() {
+            menu.classList.remove('active');
+            toggle.classList.remove('active');
+            toggle.setAttribute('aria-expanded', 'false');
             isOpen = false;
         }
 
-        switcherBtn.addEventListener('click', (e) => {
+        toggle.addEventListener('click', (e) => {
             e.stopPropagation();
-            e.preventDefault();
-            isOpen ? close() : open();
+            isOpen ? hideMenu() : showMenu();
         });
 
-        document.querySelectorAll('.theme-option').forEach(option => {
-            option.addEventListener('click', (e) => {
-                e.stopPropagation();
-                applyTheme(option.getAttribute('data-theme'));
-                close();
-            });
-        });
-
-        // Close on outside click
-        document.addEventListener('click', (e) => {
-            if (isOpen && !dropdown.contains(e.target) && !switcherBtn.contains(e.target)) {
-                close();
+        // Close menu when clicking on a link
+        menu.addEventListener('click', (e) => {
+            const link = e.target.closest('a');
+            if (link) {
+                hideMenu();
             }
         });
 
-        // Close on escape key
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!toggle.contains(e.target) && !menu.contains(e.target)) {
+                hideMenu();
+            }
+        });
+
+        // Close menu on escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && isOpen) {
-                close();
-                switcherBtn.focus();
-            }
-        });
-
-        // Keyboard navigation
-        dropdown.addEventListener('keydown', (e) => {
-            const options = Array.from(document.querySelectorAll('.theme-option'));
-            const idx = options.indexOf(document.activeElement);
-
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                options[(idx + 1) % options.length].focus();
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                options[(idx - 1 + options.length) % options.length].focus();
-            } else if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                if (document.activeElement.classList.contains('theme-option')) {
-                    applyTheme(document.activeElement.getAttribute('data-theme'));
-                    close();
-                }
+                hideMenu();
             }
         });
     }
 
-    // Keyboard shortcuts
-    function setupKeyboardShortcuts() {
-        document.addEventListener('keydown', (e) => {
-            if (e.altKey && e.key >= '1' && e.key <= '3') {
-                e.preventDefault();
-                applyTheme(THEME_ORDER[parseInt(e.key) - 1]);
-            }
-            if (e.altKey && (e.key === 't' || e.key === 'T')) {
-                e.preventDefault();
-                cycleTheme();
-            }
-        });
-    }
-
-    // Mobile navigation toggle
-    function setupNavToggle() {
-        const navToggle = document.getElementById('navToggle');
-        const navMenu = document.getElementById('navMenu');
-
-        if (navToggle && navMenu) {
-            // Toggle menu on hamburger click
-            navToggle.addEventListener('click', function(e) {
-                e.stopPropagation();
-                navToggle.classList.toggle('active');
-                navMenu.classList.toggle('active');
-                
-                // Update aria-expanded
-                const isExpanded = navMenu.classList.contains('active');
-                navToggle.setAttribute('aria-expanded', isExpanded);
-            });
-
-            // Close menu when clicking nav links (but not theme switcher)
-            navMenu.querySelectorAll('.nav-link').forEach(link => {
-                link.addEventListener('click', function() {
-                    navToggle.classList.remove('active');
-                    navMenu.classList.remove('active');
-                    navToggle.setAttribute('aria-expanded', 'false');
-                });
-            });
-
-            // Close menu when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!navMenu.contains(e.target) && !navToggle.contains(e.target)) {
-                    navToggle.classList.remove('active');
-                    navMenu.classList.remove('active');
-                    navToggle.setAttribute('aria-expanded', 'false');
-                }
-            });
-        }
-    }
-
-    // Smooth scrolling
-    function setupSmoothScroll() {
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                const href = this.getAttribute('href');
-                if (href !== '#' && href.length > 1) {
-                    const target = document.querySelector(href);
-                    if (target) {
-                        e.preventDefault();
-                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                }
-            });
-        });
-    }
-
-    // Active nav highlighting
-    function setupActiveNav() {
-        const sections = document.querySelectorAll('section[id]');
-        const navLinks = document.querySelectorAll('.nav-link');
-
-        if (!sections.length || !navLinks.length) return;
-
-        function highlight() {
-            const scrollY = window.scrollY;
-
-            sections.forEach(section => {
-                const height = section.offsetHeight;
-                const top = section.offsetTop - 150;
-                const id = section.getAttribute('id');
-
-                if (scrollY > top && scrollY <= top + height) {
-                    navLinks.forEach(link => {
-                        link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
-                    });
-                }
-            });
-        }
-
-        window.addEventListener('scroll', highlight, { passive: true });
-        highlight();
-    }
-
-    // Scroll animations
-    function setupScrollAnimations() {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('animate-slide-in');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, { rootMargin: '0px 0px -50px 0px', threshold: 0.1 });
-
-        document.querySelectorAll('.hero-card, .skill-card, .education-card, .contact-card, .expertise-item').forEach((el, i) => {
-            el.style.opacity = '0';
-            el.style.transitionDelay = `${Math.min(i * 0.1, 0.5)}s`;
-            observer.observe(el);
-        });
-    }
-
-    // Initialize
+    /* ---------------- INIT ---------------- */
     function init() {
-        setupThemeSwitcherInNav();
-        initTheme();
-        setupDropdown();
-        setupKeyboardShortcuts();
-        setupNavToggle();
-        setupSmoothScroll();
-        setupActiveNav();
-        setupScrollAnimations();
+        mountSwitcher();      // must come first
+        initTheme();          // apply saved theme
+        setupDropdown();      // attach listeners AFTER DOM exists
+        setupHamburgerMenu(); // setup hamburger menu toggle
+        setupShortcuts();
     }
 
     if (document.readyState === 'loading') {
@@ -315,6 +206,7 @@
         init();
     }
 
+    /* ---------------- GLOBAL API ---------------- */
     window.setPortfolioTheme = applyTheme;
     window.getPortfolioTheme = getCurrentTheme;
     window.cyclePortfolioTheme = cycleTheme;
