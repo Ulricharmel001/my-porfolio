@@ -1,13 +1,3 @@
-/**
- * GitHub Stats Fetcher (Professional Version)
- * - Rate limit handling with headers
- * - Local caching with expiration
- * - Retry logic with exponential backoff
- * - Better error messages
- * - Contribution graph support
- * - Language breakdown
- */
-
 (function () {
     'use strict';
 
@@ -22,17 +12,12 @@
         PER_PAGE: 100
     };
 
-    // GitHub token (optional but recommended for higher rate limits)
-    // Get one at: https://github.com/settings/tokens
-    // Add your token here for 5000 req/hour instead of 60
-    const GITHUB_TOKEN = null; // IMPORTANT: Add your GitHub token here to avoid rate limits
-
-    const HEADERS = GITHUB_TOKEN
-        ? { 
-            'Authorization': `token ${GITHUB_TOKEN}`,
-            'Accept': 'application/vnd.github.v3+json'
-          }
-        : { 'Accept': 'application/vnd.github.v3+json' };
+    // No token needed - using unauthenticated GitHub API (60 requests/hour)
+    // For public repositories and profile data, this is sufficient
+    const HEADERS = {
+        'Accept': 'application/vnd.github.v3+json'
+    };
+f5d1b18 (doc:upadate docs)
 
     // Cache storage
     const cache = new Map();

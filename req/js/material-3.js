@@ -1,12 +1,4 @@
-/**
- * Material 3 & Sonar-Inspired Portfolio JavaScript
- * Main interaction script for Geyek Ulrich Armel Portfolio
- */
-
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Portfolio initializing...');
-
-    // Core Components
     initializeLoader();
     initializeScrollProgress();
     initializeNavigation();
@@ -15,12 +7,10 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeAnimations();
     initializeInteractions();
     
-    // Performance Optimizations
     setTimeout(optimizeImages, 1000);
     preloadCriticalResources();
 });
 
-// ===== LOADER FUNCTIONALITY =====
 function initializeLoader() {
     const loader = document.querySelector('.sonar-loader-wrapper');
     const progressBar = document.querySelector('.progress-fill');
@@ -36,7 +26,7 @@ function initializeLoader() {
 
     let progress = 0;
     let currentStage = 0;
-    const duration = 2500; // 2.5 seconds for snappy feel
+    const duration = 2500; 
     const interval = 30;
     const increment = 100 / (duration / interval);
 
@@ -47,7 +37,6 @@ function initializeLoader() {
         progressBar.style.width = `${roundedProgress}%`;
         progressPercentage.textContent = `${roundedProgress}%`;
 
-        // Update stages
         const newStageIndex = Math.floor((progress / 100) * stages.length);
         if (newStageIndex !== currentStage && newStageIndex < stages.length) {
             if (stages[currentStage]) {
@@ -73,7 +62,6 @@ function initializeLoader() {
         }
     }, interval);
 
-    // Fallback
     setTimeout(() => {
         if (loader.style.display !== 'none') hideLoader(loader);
     }, 5000);
@@ -92,7 +80,6 @@ function hideLoader(loader) {
     }, 600);
 }
 
-// ===== NAVIGATION =====
 function initializeNavigation() {
     const navbar = document.querySelector('.sonar-nav');
     if (!navbar) return;
@@ -109,15 +96,12 @@ function initializeNavigation() {
     window.addEventListener('scroll', throttle(() => {
         const currentScrollY = window.scrollY;
 
-        // Sticky effect
         if (currentScrollY > 50) {
             navbar.classList.add('nav-scrolled');
         } else {
             navbar.classList.remove('nav-scrolled');
         }
 
-        // Auto-hide on scroll down, show on scroll up.
-        // Keep the nav visible on smaller screens and when the mobile menu is open.
         const mobileMenuOpen = document.getElementById('navMenu')?.classList.contains('active');
         if (!isMobileView() && !mobileMenuOpen) {
             if (currentScrollY > lastScrollY && currentScrollY > 300) {
@@ -133,7 +117,6 @@ function initializeNavigation() {
     }, 100));
 }
 
-// ===== SCROLL EFFECTS & ANIMATIONS =====
 function initializeScrollEffects() {
     const observerOptions = {
         threshold: 0.15,
@@ -166,7 +149,6 @@ function triggerEntranceAnimations() {
 }
 
 function initializeAnimations() {
-    // Stat counters if any
     const stats = document.querySelectorAll('.stat-value');
     const statObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -195,9 +177,7 @@ function animateValue(obj, start, end, duration) {
     window.requestAnimationFrame(step);
 }
 
-// ===== INTERACTIONS =====
 function initializeInteractions() {
-    // Ripple effect for buttons
     const buttons = document.querySelectorAll('.btn-sonar-primary, .social-link, .nav-link');
     buttons.forEach(button => {
         button.addEventListener('click', function(e) {
@@ -250,7 +230,6 @@ function initializeScrollProgress() {
     });
 }
 
-// ===== UTILITIES =====
 function throttle(func, limit) {
     let inThrottle;
     return function() {
@@ -283,7 +262,7 @@ function optimizeImages() {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     const img = entry.target;
-                    img.src = img.src; // Trigger load if needed
+                    img.src = img.src; 
                     imageObserver.unobserve(img);
                 }
             });
@@ -308,7 +287,6 @@ function preloadCriticalResources() {
     });
 }
 
-// Handle global errors
 window.addEventListener('error', (e) => {
     console.error('Portfolio Runtime Error:', e.message);
 });

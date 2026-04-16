@@ -1,9 +1,3 @@
-// ===== ENHANCED AI CHATBOT - PROFESSIONAL PORTFOLIO VERSION =====
-// Version: 2.0 - Optimized for performance and user experience
-
-console.log('🚀 Chatbot Enhanced loaded');
-
-// ===== YOUR DETAILS — UPDATE THESE =====
 const ULRICH = {
     name: "Geyek Ulrich Armel Dahyebga",
     shortName: "Ulrich",
@@ -14,7 +8,7 @@ const ULRICH = {
     available: true,
     location: "Remote / Worldwide | Open for opportunities",
     responseTime: "24 hours",
-    resume: "#", // Add your resume link here
+    resume: "#", 
     personality: {
         tone: "thoughtful, direct, technically deep",
         philosophy: "API-first development & infrastructure as code",
